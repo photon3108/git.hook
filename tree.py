@@ -129,6 +129,12 @@ class Tree:
 
         # Delete branch
         if self.__new_head == '0000000000000000000000000000000000000000':
+            log('Delete branch %s' % (self.__old_head))
+            return
+
+        # Create branch
+        if self.__old_head == '0000000000000000000000000000000000000000':
+            log('Creat branch %s' % (self.__new_head))
             return
 
         try:
