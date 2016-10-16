@@ -32,7 +32,7 @@ class Node:
 
     def parent_list(self):
         if len(self._parent_list) == 0:
-            text = git(['cat-file', 'commit', self._commit])
+            text, _ = git(['cat-file', 'commit', self._commit])
 
             line_list = text.split('\n')
             for line in line_list:
@@ -92,7 +92,8 @@ class TrunkNode(Node):
         if not self._tree.is_master():
             raise TreeError('Only accept fast-forward at non-master branch')
 
-        common_ancestry = git(['merge-base'] + parent_list).rstrip('\n')
+        common_ancestry, _ = git(['merge-base'] + parent_list)
+        common_ancestry = common_ancestry.rstrip('\n')
         log(str(parent_list))
         log(common_ancestry)
         if common_ancestry not in parent_list:
@@ -137,6 +138,13 @@ class Tree:
             log('Creat branch %s' % (self.__new_head))
             return
 
+        # Forced update
+        _, retcode = git(
+            ['merge-base', '--is-ancestor', self.__old_head, self.__new_head])
+        if retcode != 0:
+            log('Forced update. old_head(%s)' % (self.__old_head))
+            return
+
         try:
             self.__current_node = TrunkNode(self, self.__new_head)
             while self.__current_node != None:
@@ -157,8 +165,9 @@ f = sys.stdout
 def git(arg_list):
     arg_list = ['git'] + arg_list
     process = subprocess.Popen(arg_list, stdout = subprocess.PIPE)
+    process.wait()
     buf = process.stdout.read()
-    return buf.decode('utf-8')
+    return buf.decode('utf-8'), process.returncode
 
 def log(msg):
     frame_list = inspect.stack()
