@@ -127,6 +127,10 @@ class Tree:
         if self.__ref.split('/')[-1] == 'master':
             self.__is_master = True
 
+        # Delete branch
+        if self.__new_head == '0000000000000000000000000000000000000000':
+            return
+
         try:
             self.__current_node = TrunkNode(self, self.__new_head)
             while self.__current_node != None:
